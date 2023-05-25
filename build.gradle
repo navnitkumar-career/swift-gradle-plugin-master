@@ -1,0 +1,96 @@
+/*
+ * Copyright 2015 OpenG (Atvira Karta, LLC)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id "com.gradle.plugin-publish" version "0.9.1"
+}
+
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+
+description = 'A gradle plugin for generating Thrift IDL files from Swift-annotated Java files'
+group = 'eu.openg.gradle'
+version = '0.4.0'
+
+ext {
+    title = 'Thrift Gradle Plugin'
+    organizationName = 'OpenG (Atvira Karta, LLC)'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    compile localGroovy()
+    compile gradleApi()
+
+    compile('com.facebook.swift:swift-generator:0.15.1') {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+
+    testCompile 'com.netflix.nebula:nebula-test:2.2.2'
+}
+
+jar.manifest {
+    attributes(
+            'Specification-Title': title,
+            'Specification-Vendor': organizationName,
+            'Implementation-Title': 'eu.openg.swift',
+            'Implementation-Vendor-Id': 'eu.openg',
+            'Implementation-Vendor': organizationName,
+            'Implementation-Version': version,
+            'Created-By': 'Gradle ' + gradle.gradleVersion
+    )
+}
+
+publishing.publications {
+    mavenJava(MavenPublication) {
+
+        from components.java
+
+        pom.withXml {
+            def project = asNode()
+            project.appendNode 'name', title
+            project.appendNode 'description', description
+
+            def organization = project.appendNode 'organization'
+            organization.appendNode 'name', organizationName
+            organization.appendNode 'url', 'http://openg.eu'
+
+            def licenses = project.appendNode 'licenses'
+            def license = licenses.appendNode 'license'
+            license.appendNode 'name', 'Apache License, Version 2.0'
+            license.appendNode 'url', 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            license.appendNode 'distribution', 'repo'
+        }
+    }
+}
+
+pluginBundle {
+    website = 'https://github.com/OpenG/swift-gradle-plugin'
+    vcsUrl = 'https://github.com/OpenG/swift-gradle-plugin'
+    description = project.description
+    tags = ['swift', 'thrift', 'converter']
+
+    plugins {
+        swiftPlugin {
+            id = 'eu.openg.swift'
+            displayName = title
+        }
+    }
+}
